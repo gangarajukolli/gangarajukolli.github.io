@@ -1,0 +1,591 @@
+openapi: 3.0.3
+info:
+  title: AI-Powered ticketing software
+  description: |
+    # About us
+    **Wavity** is a next level Help Desk Management Keep your team operating at `peak efficiency` with our revolutionary service desk software designed to streamline your workflow.
+      
+    **Supported Platforms**
+      - Web
+        - Safari
+        - Chrome
+        - FireFox
+        - Edge
+      - Mobile
+        - Apple
+        - Android
+      - Tablet
+        - Apple
+        - Android
+  termsOfService: https://www.wavity.com/terms-of-service
+  contact:
+    name: API Support
+    url: https://www.wavity.com/contact-us
+    email: contact@wavity.com
+  license:
+    name: Wavity 2.0
+    url: https://www.wavity.com/contact-us
+  version: 0.0.1
+  x-custom-info:
+    comment: Support team Details
+    name: Support Team
+    email: support@wavity.com
+externalDocs:
+  description: FAQ
+  url: https://www.wavity.com/help-docs
+servers:
+  - url: https://{subdomain}.wavity.{domain}
+    description: Auth server
+    variables:
+      subdomain:
+        default: wcpdemo
+        description: This is your tenant-id
+      domain:
+        default: info
+        description: this is your TLD (top level domain)
+  - url: https://{subdomain}.wavity.{domain}/api/{version}
+    description: API Server
+    variables:
+      subdomain:
+        default: wcpdemo
+        description: This is your tenant-id
+      domain:
+        default: com
+        description: this is your TLD (top level domain)
+      version:
+        default: v2
+        description: API version
+tags:
+  - name: Ticketing
+    description: Ticketing API operations
+security:
+  - oAuth2AuthCode: []
+  - oAuth2ClientCredentials: []
+  - oAuth2Password: []
+paths:
+  /tickets:
+    get:
+      tags:
+        - Ticketing
+      summary: Ticket List
+      description: Get all my tickets list
+      operationId: getMytickets
+      parameters:
+        - $ref: "#/components/parameters/startQueryParam"
+        - $ref: "#/components/parameters/rowsQueryParam"
+        - $ref: "#/components/parameters/statusQueryParam"
+        - $ref: "#/components/parameters/priorityQueryParam"
+        - $ref: "#/components/parameters/tagQueryParam"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  start:
+                    type: integer
+                    format: int64
+                  row:
+                    type: integer
+                    format: int64
+                  numfound:
+                    type: integer
+                    format: int64
+                  response:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ticket'
+        '400':
+          $ref: '#/components/responses/400Status'
+        '401':
+          $ref: '#/components/responses/401Status'
+    post:
+      summary: Add a new ticket
+      tags:
+        - Ticketing
+      operationId: createTicket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketCreateRequest'
+      responses:
+        '200':
+          description: Ticket submitted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticket' 
+        '500':
+          $ref: '#/components/responses/GenericError'
+  /tickets/{ticketID}:
+    get:
+      tags:
+        - Ticketing
+      summary: Ticket Details
+      description: Get ticket details for the given ticket ID
+      operationId: getTicketDetails
+      parameters:
+        - $ref: "#/components/parameters/ticketIdPathParam"
+        - $ref: "#/components/parameters/startQueryParam"
+        - $ref: "#/components/parameters/rowsQueryParam"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticket' 
+        '400':
+          $ref: '#/components/responses/400Status'
+        '401':
+          $ref: '#/components/responses/401Status'
+    put:
+      tags:
+        - Ticketing
+      summary: Update a ticket
+      description: Update an existing ticket by Id
+      operationId: updateTicket
+      parameters:
+        - $ref: "#/components/parameters/ticketIdPathParam"
+      requestBody:
+        description: Update an existing ticket
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketUpdateRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticket'  
+        '400':
+          $ref: '#/components/responses/400Status'
+        '401':
+          $ref: '#/components/responses/401Status'
+  /tickets/{ticketID}/status:
+    put:
+      summary: Update status
+      description: Update ticket status by ID
+      tags:
+        - Ticketing
+      operationId: updateStatus
+      parameters:
+        - $ref: "#/components/parameters/ticketIdPathParam"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/statusUpdateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticket'
+        '400':
+          $ref: '#/components/responses/400Status'
+        '401':
+          $ref: '#/components/responses/401Status'
+  /tickets/{ticketID}/priority:
+    put:
+      summary: Update priority
+      description: Update ticket priority by ID
+      tags:
+        - Ticketing
+      operationId: updatePriority
+      parameters:
+        - $ref: "#/components/parameters/ticketIdPathParam"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/priorityUpdateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticket'
+        '400':
+          $ref: '#/components/responses/400Status'
+        '401':
+          $ref: '#/components/responses/401Status'
+  /tickets/{ticketID}/comment:
+    post:
+      summary: Add a new comment
+      description: Add a new comment for the given ticket
+      tags:
+        - Ticketing
+      operationId: addComment
+      parameters:
+        - $ref: "#/components/parameters/ticketIdPathParam"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/comment'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticket'
+        '400':
+          $ref: '#/components/responses/400Status'
+        '401':
+          $ref: '#/components/responses/401Status'
+    get:
+      tags:
+        - Ticketing
+      summary: Get all comments
+      description: Get all comments for the given ticket ID
+      operationId: getComments
+      parameters:
+        - $ref: "#/components/parameters/ticketIdPathParam"
+        - $ref: "#/components/parameters/startQueryParam"
+        - $ref: "#/components/parameters/rowsQueryParam"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  start:
+                    type: integer
+                    format: int64
+                  row:
+                    type: integer
+                    format: int64
+                  numfound:
+                    type: integer
+                    format: int64
+                  response:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/comment'
+        '400':
+          $ref: '#/components/responses/400Status'
+        '401':
+          $ref: '#/components/responses/401Status'
+components:
+  parameters:
+    ticketIdPathParam:
+      name: ticketID
+      in: path
+      required: true
+      schema:
+        type: string
+    startQueryParam:
+      name: start
+      description: Represents page number
+      in: query
+      required: true
+      schema:
+        type: integer
+      example: 2
+    rowsQueryParam:
+      name: rows
+      description: Represents rows per page
+      in: query
+      required: true
+      schema:
+        type: integer
+      example: 10
+    statusQueryParam:
+      name: status
+      in: query
+      schema:
+        type: array
+        items:
+          enum:
+            - Open
+            - Onhold
+            - Resolved
+            - Close
+    priorityQueryParam:
+      name: priority
+      in: query
+      schema:
+        type: array
+        items:
+          enum:
+            - Low
+            - Normal
+            - High
+            - Urgent
+    tagQueryParam:
+      name: tag
+      in: query
+      schema:
+        type: array
+        items: 
+          type: string
+  schemas:
+    ticket:
+      type: object
+      properties:
+        id:
+          type: string
+        subject:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - Open
+            - Onhold
+            - Resolved
+            - Close
+        requester:
+          type: string
+        createDate:
+          type: integer
+          format: int64
+          description: UTC Milliseconds
+        priority:
+          type: string
+          enum:
+            - Low
+            - Normal
+            - High
+            - Urgent
+        resolution:
+          type: string
+        eta:
+          type: integer
+          format: int64
+          description: UTC Milliseconds
+        agent:
+          type: string
+        closeDate:
+          type: integer
+          format: int64
+          description: UTC Milliseconds
+        tags:
+          type: string
+        category:
+          type: string
+        custom:
+          type: object
+      example:
+        id: TKT101
+        subject: Issue with my laptop
+        description: Not booting
+        status: New
+        requester: John
+        createDate: 1711090628526
+        priority: High
+        resolution: Resolved
+        eta: 1711090628526
+        agent: Taylor
+        closeDate: 1711090628526
+        tags: tkt
+        category: Incident
+    ticketCreateRequest:
+        type: object
+        properties:
+          subject:
+            type: string
+          description:
+            type: string
+          status:
+            type: string
+            enum:
+              - Open
+              - Onhold
+              - Resolved
+              - Close
+          priority:
+            type: string
+            enum:
+              - Low
+              - Normal
+              - High
+              - Urgent
+          tags:
+            type: string
+          customAttributes:
+            type: object
+        required:
+          - subject
+          - description
+        example:
+          subject: Issue with my laptop
+          description: Not booting
+          status: New
+          priority: High
+          Tags: Issue
+    ticketUpdateRequest:
+        type: object
+        properties:
+          subject:
+            type: string
+          description:
+            type: string
+          status:
+            type: string
+            enum:
+              - Open
+              - Onhold
+              - Resolved
+              - Close
+          priority:
+            type: string
+            enum:
+              - Low
+              - Normal
+              - High
+              - Urgent
+          tags:
+            type: string
+        example:
+          subject: Issue with my laptop
+          description: Not booting
+          status: New
+          priority: High
+          tags: Issue
+    statusUpdateRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - Open
+            - Onhold
+            - Resolved
+            - Close
+      required:
+        - status
+      example:
+        status: Pending
+    priorityUpdateRequest:
+      type: object
+      properties:
+        priority:
+          type: string
+          enum:
+            - Low
+            - Normal
+            - High
+            - Urgent
+      required:
+        - priority
+      example:
+        priority: Urgent
+    comment:
+      type: object
+      properties:
+        ID:
+          type: string
+        comment:
+          type: string
+      required:
+        - ID
+        - comment
+      example:
+        ID: commentID101
+        comment: This is my first comment
+    tokenRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+        scope:
+          type: string
+        grant_type:
+          type: string
+      required:
+        - username
+        - password
+        - scope
+        - grant_type
+    tokenResponse:
+      type: object
+      properties:
+        scope:
+          type: string
+        access_token:
+          type: string
+        token_type:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: integer
+          format: int64
+      example:
+        scope: "ache"
+        access_token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzUxMiJ9.eyJzdWIiOiIwNDk2NDdlMC0wMTEzLTRhYWEtYjVmYy02N2M0ZmMwMjAzY2UiLCJhdWQiOiJ3Y3BkZW1vIiwiaXNzIjoid2F2aXR5IiwiZXhwIjoxNzEwODA0MDA3LCJqdGkiOiI0MzEyYWQ4NC0wZGIxLTQ2YzEtODgxNy1lMzcxNDFiZDM3NGUifQ.AAEyYLF2VSbi_Ie7lYgHgvX7H6aWcA7xr425i3CbE6c0Ux-JGNP6tqUlg8Yb81m7sqmj_A_c3W7FTsaIm7INMoMmAAtSuohz_9jxEnKI5aNtB2uV2UNCS3WPspFBszhChSibJEnNhENZ4K6dzwvZYNqgtRAS_SJNef2voTYiHWwGiPlq"
+        token_type: "bearer"
+        refresh_token: "c0984c8a-5141-4ce3-9737-eed23e482dcd"
+        expires_in: 86400
+    error:
+      type: object
+      properties:
+        message:
+          type: string
+  responses:
+    '400Status':
+      description: Invalid Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    '401Status':
+      description: Un Authorized Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    GenericError:
+      description: |
+        An error occured while processing the request.
+        Please contact **support@wavity.com**
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+  securitySchemes:
+    oAuth2AuthCode:
+      type: oauth2
+      flows: 
+        authorizationCode:
+          authorizationUrl: /auth
+          tokenUrl: /auth/token
+          refreshUrl: /auth/token
+          scopes:
+            read: Read only access
+            write: Read Write access
+    oAuth2ClientCredentials:
+      type: oauth2
+      flows: 
+        clientCredentials:
+          tokenUrl: /auth/token
+          refreshUrl: /auth/token
+          scopes:
+            read: Read only access
+            write: Read Write access
+    oAuth2Password:
+      type: oauth2
+      flows: 
+        password:
+          tokenUrl: /auth/token
+          refreshUrl: /auth/token
+          scopes:
+            read: Read only access
+            write: Read Write access
